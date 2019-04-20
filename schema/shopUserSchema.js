@@ -25,7 +25,8 @@ module.exports = function (sequelize, DataTypes) {
     },
     status: {
       type: DataTypes.INTEGER(11),
-      allowNull: false
+      allowNull: false,
+      defaultValue: 0
     },
     email: {
       type: DataTypes.STRING(40),

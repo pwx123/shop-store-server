@@ -60,12 +60,12 @@ class shopUserController {
   static async register(req, res, next) {
     try {
       let name = req.body.name;
-      let nickname = req.body.nickname;
+      let nickname = name;
       let pwd = decodeURI(req.body.pwd);
       let repPwd = decodeURI(req.body.repPwd);
       let decryptPwd = rsaKey.decrypt(pwd, "utf8");
       let decryptRepPwd = rsaKey.decrypt(repPwd, "utf8");
-      if (hasEmpty(name, decryptPwd, decryptRepPwd, nickname) || !mobileReg.test(name) || nickname.length > 20) {
+      if (hasEmpty(name, decryptPwd, decryptRepPwd) || !mobileReg.test(name)) {
         res.json(resMsg(9001));
         return false;
       } else {

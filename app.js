@@ -10,7 +10,6 @@ const resMsg = require("./utils/utils").resMsg;
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/user");
 var bookRouter = require("./routes/book");
-var adminRouter = require("./routes/admin");
 var shopRouter = require("./routes/shop");
 var orderRouter = require("./routes/order");
 
@@ -48,7 +47,6 @@ app.use(function (req, res, next) {
 app.use("/", indexRouter);
 app.use("/user", usersRouter);
 app.use("/book", bookRouter);
-app.use("/admin", adminRouter);
 app.use("/shop", shopRouter);
 app.use("/order", orderRouter);
 

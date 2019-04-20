@@ -3,118 +3,10 @@ const sequelize = db.sequelize;
 const Op = sequelize.Op;
 const bookListSchema = sequelize.import("../schema/bookListSchema");
 const classifySchema = sequelize.import("../schema/classifySchema");
+const shopSubOrderListSchema = sequelize.import("../schema/shopSubOrderListSchema");
 const getUncertainLikeSqlObj = require("../utils/utils").getUncertainLikeSqlObj;
 
 class bookListModel {
-  /**
-   * 查询图书列表
-   *
-   * @static
-   * @param {*} parmas
-   * @returns
-   * @memberof bookListModel
-   */
-  static async getBookList(parmas) {
-    let {
-      pageSize,
-      pageNumber,
-      startTime,
-      endTime,
-      name,
-      author,
-      press
-    } = parmas;
-    let likeObj = getUncertainLikeSqlObj({
-      name,
-      author,
-      press
-    });
-
-    let result = await bookListSchema.findAndCountAll({
-      offset: pageSize * (pageNumber - 1),
-      limit: pageSize,
-      where: {
-        status: 0,
-        createdAt: {
-          [Op.gt]: startTime,
-          [Op.lt]: endTime,
-        },
-        ...likeObj
-      },
-      order: [
-        ["id", "DESC"]
-      ]
-    });
-    return {
-      pageSize,
-      pageNumber,
-      rows: result.rows,
-      total: result.count
-    };
-  }
-
-  /**
-   * 删除列表中的图书
-   *
-   * @static
-   * @param {*} ids 图书id 逗号间隔
-   * @returns
-   * @memberof bookListModel
-   */
-  static async deleteBooks(ids) {
-    return await bookListSchema.update({
-      status: 1
-    }, {
-      where: {
-        id: {
-          [Op.in]: ids.split(",")
-        }
-      }
-    });
-  }
-
-  /**
-   * 更新图书
-   *
-   * @static
-   * @param {*} param
-   * @returns
-   * @memberof bookListModel
-   */
-  static async updateBook(param) {
-    let {
-      id,
-      stock,
-      ...updateData
-    } = param;
-    let str = "";
-    if (stock == undefined) {
-      str = `+0`;
-    } else {
-      str = stock >= 0 ? `+${stock}` : `${stock}`;
-    }
-    return await bookListSchema.update({
-      stock: sequelize.literal("`stock` " + str),
-      updatedAt: new Date(),
-      ...updateData
-    }, {
-      where: {
-        id
-      }
-    });
-  }
-
-  /**
-   * 批量插入图书
-   *
-   * @static
-   * @param {Array} bookArr
-   * @memberof bookListModel
-   */
-  static async insertBook(bookArr) {
-    return await bookListSchema.bulkCreate(bookArr);
-  }
-
   /**
    *
    * 查询所有图书分类
@@ -128,53 +20,94 @@ class bookListModel {
 
   /**
    *
-   * 删除图书分类
+   * 获取随机图书分类
    * @static
-   * @param {*} id 分类id
    * @returns {Promise<*>}
    * @memberof bookListModel
    */
-  static async deleteClassify(id) {
-    await classifySchema.destroy({
-      where: {
-        id
-      }
+  static async getRandClassify() {
+    return classifySchema.findAll({
+      order: [
+        [[sequelize.literal("RAND()"), "DESC"]]
+      ],
+      limit: 5
     });
-    return await sequelize.query(`UPDATE \`shop_book_list\` SET \`classify\`=TRIM(BOTH ',' FROM replace(concat(',',\`classify\`,','), ',${id},', '')) WHERE FIND_IN_SET('${id}',classify)`);
   }
 
 
   /**
-   * 添加分类
    *
+   * 根据分类获取图书
    * @static
-   * @param {string} classifyName 分类名
-   * @returns
+   * @returns {Promise<*>}
    * @memberof bookListModel
    */
-  static async addClassify(classifyName) {
-    return await classifySchema.create({
-      name: classifyName
-    });
+  static async getGoodByClassifyId(id) {
+    return await sequelize.query("SELECT * FROM `shop_book_list` WHERE FIND_IN_SET(" + id + ", classify) limit 8", {type: sequelize.QueryTypes.SELECT});
   }
 
   /**
-   * 批量修改上下架
    *
+   * 查询热销图书
    * @static
-   * @param {*} isSell 上下架
-   * @param {*} ids 逗号分隔 ids
+   * @returns {Promise<*>}
    * @memberof bookListModel
    */
-  static async changeBookSellStatus(isSell, ids) {
-    return await bookListSchema.update({
-      isSell
-    }, {
+  static async getHotGood() {
+    let time = new Date(new Date(new Date().toLocaleDateString()).getTime());
+    time.setDate(1);
+    return shopSubOrderListSchema.findAll({
+      attributes: [[sequelize.fn("COUNT", sequelize.col("id")), "bookCount"],
+        ["bookId", "id"],
+        ["bookName", "name"],
+        ["bookImageUrl", "imageUrl"],
+        ["bookPrice", "price"],
+        ["bookSalePrice", "salePrice"]
+      ],
       where: {
-        id: {
-          [Op.in]: ids.split(",")
+        createdAt: {
+          [Op.gt]: time,
         }
-      }
+      },
+      group: "bookId",
+      order: [
+        [[sequelize.literal("bookCount"), "DESC"]]
+      ],
+      limit: 3
+    });
+  }
+
+  /**
+   *
+   * 查询折扣图书
+   * @static
+   * @returns {Promise<*>}
+   * @memberof bookListModel
+   */
+  static async getSaleGood() {
+    return bookListSchema.findAll({
+      attributes: [[sequelize.literal("price-salePrice"), "deltaPrice"], "id", "name", "imageUrl", "price", "salePrice"],
+      order: [
+        [[sequelize.literal("deltaPrice"), "DESC"]]
+      ],
+      limit: 3
+    });
+  }
+
+  /**
+   *
+   * 查询发现图书
+   * @static
+   * @returns {Promise<*>}
+   * @memberof bookListModel
+   */
+  static async getDiscoverGood() {
+    return bookListSchema.findAll({
+      attributes: ["id", "name", "imageUrl", "price", "salePrice", "description"],
+      order: [
+        [[sequelize.literal("RAND()"), "DESC"]]
+      ],
+      limit: 5
     });
   }
 }
