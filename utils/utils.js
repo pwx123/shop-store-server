@@ -56,7 +56,7 @@ let getUncertainSqlObj = function (params) {
  */
 let getUncertainLikeSqlObj = function (params) {
   let obj = {};
-  for (key in params) {
+  for (let key in params) {
     let val = params[key];
     if (!hasEmpty(val)) {
       obj[key] = {};

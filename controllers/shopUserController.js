@@ -37,6 +37,7 @@ class shopUserController {
         }
         if (decryptPwd === result.pwd) {
           req.session.loginUser = result.name;
+          req.session.loginId = result.id;
           res.json(resMsg(200));
         } else {
           res.json(resMsg(1002));

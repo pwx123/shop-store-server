@@ -12,6 +12,7 @@ var usersRouter = require("./routes/user");
 var bookRouter = require("./routes/book");
 var shopRouter = require("./routes/shop");
 var orderRouter = require("./routes/order");
+var cartRouter = require("./routes/cart");
 
 const noSessionUrl = ["/user/login", "/user/register", "/getPublicKey", "/getUserList", "/api/getOrder"];
 
@@ -49,6 +50,7 @@ app.use("/user", usersRouter);
 app.use("/book", bookRouter);
 app.use("/shop", shopRouter);
 app.use("/order", orderRouter);
+app.use("/cart", cartRouter);
 
 //404 handler
 app.use(function (req, res, next) {

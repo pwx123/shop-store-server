@@ -53,9 +53,13 @@ class bookListModel {
    * @returns {Promise<*>}
    * @memberof bookListModel
    */
-  static async getHotGood() {
+  static async getHotGood(all) {
     let time = new Date(new Date(new Date().toLocaleDateString()).getTime());
     time.setDate(1);
+    let obj = {};
+    if (!all) {
+      obj.limit = 3;
+    }
     return shopSubOrderListSchema.findAll({
       attributes: [[sequelize.fn("COUNT", sequelize.col("id")), "bookCount"],
         ["bookId", "id"],
@@ -73,7 +77,7 @@ class bookListModel {
       order: [
         [[sequelize.literal("bookCount"), "DESC"]]
       ],
-      limit: 3
+      ...obj
     });
   }
 
@@ -84,13 +88,17 @@ class bookListModel {
    * @returns {Promise<*>}
    * @memberof bookListModel
    */
-  static async getSaleGood() {
+  static async getSaleGood(all) {
+    let obj = {};
+    if (!all) {
+      obj.limit = 3;
+    }
     return bookListSchema.findAll({
       attributes: [[sequelize.literal("price-salePrice"), "deltaPrice"], "id", "name", "imageUrl", "price", "salePrice"],
       order: [
         [[sequelize.literal("deltaPrice"), "DESC"]]
       ],
-      limit: 3
+      ...obj
     });
   }
 
@@ -108,6 +116,53 @@ class bookListModel {
         [[sequelize.literal("RAND()"), "DESC"]]
       ],
       limit: 5
+    });
+  }
+
+
+  /**
+   * 根据id获取详情
+   * @param id
+   * @returns {Promise<*>}
+   */
+  static async getBookInfoById(id) {
+    return bookListSchema.findOne({
+      attributes: {exclude: ["status", "stockPrice", "isSell", "createdAt", "updatedAt"]},
+      where: {
+        id
+      }
+    });
+  }
+
+  /**
+   * 搜索图书
+   * @param id
+   * @returns {Promise<*>}
+   */
+  static async searchBook(search) {
+
+    let likeArr = [
+      {
+        name: {
+          [Op.like]: `%${search}%`
+        }
+      },
+      {
+        author: {
+          [Op.like]: `%${search}%`
+        }
+      },
+      {
+        title: {
+          [Op.like]: `%${search}%`
+        }
+      },
+    ];
+    return bookListSchema.findAll({
+      attributes: ["id", "name", "imageUrl", "price", "salePrice"],
+      where: {
+        [Op.or]: likeArr
+      }
     });
   }
 }

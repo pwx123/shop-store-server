@@ -12,5 +12,9 @@ router.post("/getHotGood", bookListController.getHotGood);
 router.post("/getSaleGood", bookListController.getSaleGood);
 // 获取发现商品
 router.post("/getDiscoverGood", bookListController.getDiscoverGood);
+// 根据id获取详情
+router.post("/getBookInfoById", bookListController.getBookInfoById);
+// 搜索图书
+router.post("/searchBook", bookListController.searchBook);
 
 module.exports = router;
