@@ -8,5 +8,7 @@ router.post("/getUserCartList", cartListController.getUserCartList);
 router.post("/addCart", cartListController.addCart);
 // 从购物车删除
 router.post("/deleteCart", cartListController.deleteCart);
+// 根据id获取购物车信息
+router.post("/getCartById", cartListController.getCartById);
 
 module.exports = router;

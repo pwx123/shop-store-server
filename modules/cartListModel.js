@@ -49,6 +49,25 @@ class cartListModel {
       }
     });
   }
+
+  /**
+   *
+   * 根据id获取购物车信息
+   * @static
+   * @param {*} userId 用户id
+   * @param {*} id 购物车id
+   * @returns {Promise<*>}
+   */
+  static async getCartById(userId, ids) {
+    return await shopUserCartListSchema.findAll({
+      where: {
+        userId,
+        id: {
+          [Op.in]: ids.split(",")
+        }
+      }
+    });
+  }
 }
 
 module.exports = cartListModel;

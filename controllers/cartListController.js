@@ -85,6 +85,27 @@ class cartListController {
       res.json(resMsg());
     }
   }
+  /**
+   * 根据id获取购物车信息
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @param {*} next
+   */
+  static async getCartById(req, res, next) {
+    try {
+      if (hasEmpty(req.body.ids)) {
+        res.json(resMsg(9001));
+        return false;
+      }
+      let result = await cartListModel.getCartById(req.session.loginId, req.body.ids);
+      res.json(resMsg(200, result));
+    } catch (error) {
+      logger.error(error);
+      res.json(resMsg());
+    }
+  }
 }
 
 module.exports = cartListController;
