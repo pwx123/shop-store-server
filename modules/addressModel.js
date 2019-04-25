@@ -95,7 +95,10 @@ class addressModel {
       where: {
         userId
       },
-      raw: true
+      raw: true,
+      order: [
+        "id"
+      ]
     });
   }
 
@@ -121,6 +124,11 @@ class addressModel {
     });
     return await shopUserDeliveryAddressSchema.findOne({
       attributes: {
+        include: [
+          [sequelize.col("shop_delivery_province.name"), "provinceName"],
+          [sequelize.col("shop_delivery_city.name"), "cityName"],
+          [sequelize.col("shop_delivery_country.name"), "countryName"]
+        ],
         exclude: ["userId"]
       },
       include: [{
@@ -138,6 +146,72 @@ class addressModel {
         id
       },
       raw: true
+    });
+  }
+
+  /**
+   * 新增收货地址
+   *
+   * @static
+   * @param {Object} param 新增的字段
+   */
+  static async addAddress(param) {
+    if (param.isDefault) {
+      await shopUserDeliveryAddressSchema.update({
+        isDefault: 0
+      }, {
+        where: {
+          userId: param.userId
+        }
+      });
+    }
+    return await shopUserDeliveryAddressSchema.create({
+      ...param
+    });
+  }
+
+
+  /**
+   * 修改收货地址
+   *
+   * @static
+   * @param {Object} param 修改的字段
+   */
+  static async updateAddress(param) {
+    if (param.isDefault) {
+      await shopUserDeliveryAddressSchema.update({
+        isDefault: 0
+      }, {
+        where: {
+          userId: param.userId
+        }
+      });
+    }
+    return await shopUserDeliveryAddressSchema.update({
+      ...param
+    }, {
+      where: {
+        id: param.id,
+        userId: param.userId
+      }
+    });
+  }
+
+
+  /**
+   *
+   * 删除收货地址
+   * @static
+   * @param {*} userId 用户id
+   * @param {*} id 收货地址id
+   * @returns {Promise<*>}
+   */
+  static async deleteAddress(userId, id) {
+    return await shopUserDeliveryAddressSchema.destroy({
+      where: {
+        userId,
+        id
+      }
     });
   }
 }

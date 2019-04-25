@@ -1,6 +1,7 @@
 const db = require("../config/dbConnect");
 const sequelize = db.sequelize;
 const adminUserSchema = sequelize.import("../schema/adminUserSchema");
+const shopUserDeliveryAddressSchema = sequelize.import("../schema/shopUserDeliveryAddressSchema");
 
 class indexModel {
   /**
