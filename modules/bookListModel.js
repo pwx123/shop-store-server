@@ -43,7 +43,7 @@ class bookListModel {
    * @memberof bookListModel
    */
   static async getGoodByClassifyId(id) {
-    return await sequelize.query("SELECT * FROM `shop_book_list` WHERE FIND_IN_SET(" + id + ", classify) limit 8", {type: sequelize.QueryTypes.SELECT});
+    return await sequelize.query("SELECT * FROM `shop_book_list` WHERE FIND_IN_SET(" + id + ", classify) AND status=0 AND isSell=1 limit 8", {type: sequelize.QueryTypes.SELECT});
   }
 
   /**
@@ -98,6 +98,10 @@ class bookListModel {
       order: [
         [[sequelize.literal("deltaPrice"), "DESC"]]
       ],
+      where: {
+        status: 0,
+        isSell: 1
+      },
       ...obj
     });
   }
@@ -115,6 +119,10 @@ class bookListModel {
       order: [
         [[sequelize.literal("RAND()"), "DESC"]]
       ],
+      where: {
+        status: 0,
+        isSell: 1
+      },
       limit: 5
     });
   }
@@ -127,7 +135,7 @@ class bookListModel {
    */
   static async getBookInfoById(id) {
     return bookListSchema.findOne({
-      attributes: {exclude: ["status", "stockPrice", "isSell", "createdAt", "updatedAt"]},
+      attributes: {exclude: ["status", "stockPrice", "createdAt", "updatedAt"]},
       where: {
         id
       }
@@ -161,7 +169,9 @@ class bookListModel {
     return bookListSchema.findAll({
       attributes: ["id", "name", "imageUrl", "price", "salePrice"],
       where: {
-        [Op.or]: likeArr
+        [Op.or]: likeArr,
+        status: 0,
+        isSell: 1
       }
     });
   }

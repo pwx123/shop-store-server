@@ -1,5 +1,5 @@
-const logger = require("../config/log4j");
-const rsaKey = require("./../config/rsa");
+const logger = require("../utils/log4j");
+const rsaKey = require("../utils/rsa");
 const resMsg = require("../utils/utils").resMsg;
 const hasEmpty = require("../utils/utils").hasEmpty;
 const getRandom = require("../utils/utils").getRandom;

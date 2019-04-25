@@ -1,4 +1,4 @@
-const logger = require("../config/log4j");
+const logger = require("../utils/log4j");
 const resMsg = require("../utils/utils").resMsg;
 const addressModel = require("../modules/addressModel");
 const hasEmpty = require("../utils/utils").hasEmpty;

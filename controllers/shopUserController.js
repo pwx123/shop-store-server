@@ -1,4 +1,4 @@
-const logger = require("../config/log4j");
+const logger = require("../utils/log4j");
 const resMsg = require("../utils/utils").resMsg;
 const hasEmpty = require("../utils/utils").hasEmpty;
 const getRandomPwd = require("../utils/utils").getRandomPwd;
@@ -6,7 +6,7 @@ const shopUserModel = require("../modules/shopUserModel");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const rsaKey = require("../config/rsa");
+const rsaKey = require("../utils/rsa");
 const mobileReg = require("../utils/utils").mobileReg;
 const uploadConfig = require("./../config/uploadConfig");
 

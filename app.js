@@ -3,8 +3,9 @@ var express = require("express");
 var path = require("path");
 var cors = require("cors");
 
-var sessionMiddleware = require("./config/sessionMiddleware");
-const morgan = require("./config/morgan");
+var sessionMiddleware = require("./middleware/session");
+var getShopStatusMiddleware = require("./middleware/getShopStatus");
+const morgan = require("./middleware/morgan");
 const resMsg = require("./utils/utils").resMsg;
 
 var indexRouter = require("./routes/index");
@@ -33,6 +34,15 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(cors({credentials: true, origin: "http://127.0.0.1:8081"}));
 app.use(sessionMiddleware);
+
+app.use(async function (req, res, next) {
+  let result = await getShopStatusMiddleware();
+  if (result[0].status === 1) {
+    next();
+  } else {
+    res.status(301).json(resMsg(301, "/rest"));
+  }
+});
 
 app.use(function (req, res, next) {
   if (req.session.loginUser && typeof req.session.loginUser === "string") {

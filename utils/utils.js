@@ -127,6 +127,18 @@ let getRefundOrderId = function (userId) {
 };
 
 /**
+ * 获取退款流水号
+ * @param userId 用户id
+ * @returns {string}
+ */
+let getOrderId = function (userId) {
+  let str = "D";
+  str += padLeft(9, userId);
+  str += getDataStr();
+  return str;
+};
+
+/**
  * 生成随机数
  *
  * @param {Number} lower 最小值
@@ -134,7 +146,7 @@ let getRefundOrderId = function (userId) {
  * @returns
  * @memberof autoCreateOrder
  */
-let getRandom = function(lower, upper) {
+let getRandom = function (lower, upper) {
   return Math.floor(Math.random() * (upper - lower)) + lower;
 };
 
@@ -152,5 +164,6 @@ module.exports = {
   numReg,
   getRandom,
   getRandomPwd,
+  getOrderId,
   getRefundOrderId
 };

@@ -1,5 +1,5 @@
 var ioRedis = require("ioredis");
-var logger = require("./log4j");
+var logger = require("../utils/log4j");
 var redis = new ioRedis();
 redis.connect(function () {
   console.log("\x1B[32m redis connection successfully\x1B[0m");
