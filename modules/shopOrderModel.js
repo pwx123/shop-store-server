@@ -1,14 +1,13 @@
 const db = require("../config/dbConnect");
 const sequelize = db.sequelize;
 const Op = sequelize.Op;
-const moment = require("moment");
 const shopOrderListSchema = sequelize.import("../schema/shopOrderListSchema");
 const shopSubOrderListSchema = sequelize.import("../schema/shopSubOrderListSchema");
 const shopUserCartListSchema = sequelize.import("../schema/shopUserCartListSchema");
 const shopDeliveryCompanySchema = sequelize.import("../schema/shopDeliveryCompanySchema");
 const shopUserDeliveryAddressSchema = sequelize.import("../schema/shopUserDeliveryAddressSchema");
 const shopRefundRecordSchema = sequelize.import("../schema/shopRefundRecordSchema");
-const shopStockRecordSchema = sequelize.import("../schema/shopStockRecordSchema");
+const bookListSchema = sequelize.import("../schema/bookListSchema");
 const getUncertainSqlObj = require("./../utils/utils").getUncertainSqlObj;
 
 class shopOrderModel {
@@ -17,20 +16,14 @@ class shopOrderModel {
    *
    * @static
    */
-  static async getOrderList(parmas) {
+  static async getOrderList(parmas, userId) {
     let {
       pageSize,
       pageNumber,
-      startTime,
-      endTime,
-      status,
-      orderId,
-      userName
+      status
     } = parmas;
     let searchObj = getUncertainSqlObj({
-      status,
-      orderId,
-      userName
+      status
     });
     shopOrderListSchema.hasMany(shopSubOrderListSchema, {
       foreignKey: "mainOrderId",
@@ -44,10 +37,7 @@ class shopOrderModel {
       offset: pageSize * (pageNumber - 1),
       limit: pageSize,
       where: {
-        createdAt: {
-          [Op.gt]: startTime,
-          [Op.lt]: endTime,
-        },
+        userId,
         ...searchObj
       },
       include: [{
@@ -184,6 +174,45 @@ class shopOrderModel {
    */
   static async createSubOrder(paramsArr) {
     return await shopSubOrderListSchema.bulkCreate(paramsArr);
+  }
+
+  /**
+   * 更新库存
+   *
+   * @static
+   * @returns
+   * @param id 书籍id
+   * @param reduceCount 减少的数量
+   */
+  static async updateStock(id, reduceCount) {
+    let str = `-${reduceCount}`;
+    return await bookListSchema.update({
+      stock: sequelize.literal("`stock` " + str),
+      updatedAt: new Date()
+    }, {
+      where: {
+        id
+      }
+    });
+  }
+
+  /**
+   * 订单付款完成
+   *
+   * @static
+   * @returns
+   * @param orderId
+   */
+  static async updateOrderPayment(orderId) {
+    return await shopOrderListSchema.update({
+      status: 1,
+      updatedAt: new Date()
+    }, {
+      where: {
+        orderId,
+        status: 0
+      }
+    });
   }
 }
 

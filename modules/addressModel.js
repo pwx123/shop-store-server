@@ -47,7 +47,8 @@ class addressModel {
       }],
       where: {
         isDefault: 1,
-        userId
+        userId,
+        status: 0
       }
     });
   }
@@ -93,7 +94,8 @@ class addressModel {
         attributes: []
       }],
       where: {
-        userId
+        userId,
+        status: 0
       },
       raw: true,
       order: [
@@ -143,7 +145,8 @@ class addressModel {
       }],
       where: {
         userId,
-        id
+        id,
+        status: 0
       },
       raw: true
     });
@@ -207,7 +210,9 @@ class addressModel {
    * @returns {Promise<*>}
    */
   static async deleteAddress(userId, id) {
-    return await shopUserDeliveryAddressSchema.destroy({
+    return await shopUserDeliveryAddressSchema.update({
+      status: 1
+    }, {
       where: {
         userId,
         id

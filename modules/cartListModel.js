@@ -68,6 +68,26 @@ class cartListModel {
       }
     });
   }
+
+  /**
+   *
+   * 更新购物车数量
+   * @static
+   * @param {*} userId 用户id
+   * @param {*} id 购物车id
+   * @param {*} count 数量
+   * @returns {Promise<*>}
+   */
+  static async updateCartCount(userId, id, count) {
+    return await shopUserCartListSchema.update({
+      count
+    }, {
+      where: {
+        userId,
+        id
+      }
+    });
+  }
 }
 
 module.exports = cartListModel;

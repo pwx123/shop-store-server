@@ -1,14 +1,78 @@
 const Decimal = require("decimal.js");
+const axios = require("axios");
 const logger = require("../utils/log4j");
 const resMsg = require("../utils/utils").resMsg;
 const hasEmpty = require("../utils/utils").hasEmpty;
 const getRefundOrderId = require("../utils/utils").getRefundOrderId;
 const getOrderId = require("../utils/utils").getOrderId;
 const shopOrderModel = require("../modules/shopOrderModel");
+const bookListModel = require("../modules/bookListModel");
+const cartListModel = require("../modules/cartListModel");
+const MANAGEMENT_SERVER = require("../config/uploadConfig").MANAGEMENT_SERVER;
 
 class shopOrderController {
   /**
-   * 新增物流公司
+   * 分页获取订单记录
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @param {*} next
+   * @memberof shopOrderController
+   */
+  static async getOrderList(req, res, next) {
+    try {
+      if (hasEmpty(req.body.pageSize, req.body.pageNumber)) {
+        res.json(resMsg(9001));
+        return false;
+      }
+      let result = await shopOrderModel.getOrderList(req.body, req.session.loginId);
+      res.json(resMsg(200, result));
+    } catch (error) {
+      logger.error(error);
+      res.json(resMsg());
+    }
+  }
+
+  /**
+   * 订单付款完成
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @param {*} next
+   * @returns
+   */
+  static async setOrderPayment(req, res, next) {
+    try {
+      let {orderId} = req.body;
+      if (hasEmpty(orderId)) {
+        res.json(resMsg(9001));
+        return false;
+      }
+      let data = await shopOrderModel.updateOrderPayment(orderId);
+      if (data[0] === 1) {
+        // 通知管理平台
+        axios.post(MANAGEMENT_SERVER + "/api/orderNotify", {
+          type: 1
+        }).then(res => {
+          logger.info('订单通知成功:' + orderId);
+        }).catch(err => {
+          logger.info('订单通知失败:' + orderId);
+        });
+        ;
+        res.json(resMsg(200));
+      } else {
+        res.json(resMsg(2004));
+      }
+    } catch (error) {
+      logger.error(error);
+      res.json(resMsg());
+    }
+  }
+
+  /**
+   * 新增订单
    *
    * @static
    * @param {*} req
@@ -18,9 +82,8 @@ class shopOrderController {
    */
   static async createdOrder(req, res, next) {
     try {
-      let {deliveryAddressId, ids, remark} = req.body;
-
-      if (hasEmpty(deliveryAddressId, ids)) {
+      let {deliveryAddressId, ids, remark, type, count} = req.body;
+      if (hasEmpty(deliveryAddressId, ids) || (type == 1 && (!count || count <= 0 || count > 10))) {
         res.json(resMsg(9001));
         return false;
       }
@@ -41,9 +104,20 @@ class shopOrderController {
       };
       let orderMoney = 0;
       let orders = [];
-      let ordersRes = await shopOrderModel.getSubOrderInfo(idsArr);
+      let ordersRes = [];
+      // 子订单信息
+      if (type == 1) {
+        let data = await bookListModel.getBookInfoById(idsArr[0]);
+        data.count = count;
+        ordersRes = [data];
+      } else {
+        ordersRes = await shopOrderModel.getSubOrderInfo(idsArr);
+      }
       for (let i = 0, len = ordersRes.length; i < len; i++) {
-        let {bookId, count, name, title, price, salePrice, imageUrl} = ordersRes[i];
+        let {id, bookId, count, name, title, price, salePrice, imageUrl} = ordersRes[i];
+        if (type == 1) {
+          bookId = id;
+        }
         let subOrder = {
           bookId,
           bookName: name,
@@ -56,6 +130,23 @@ class shopOrderController {
         orderMoney = new Decimal(orderMoney).add(new Decimal(salePrice).mul(new Decimal(count))).toNumber();
         orders.push(subOrder);
       }
+      // 库存校验
+      let bookIdArr = orders.map(item => item.bookId);
+      let bookInfo = await bookListModel.getBookInfoByIds(bookIdArr);
+      for (let i = 0, iLen = orders.length; i < iLen; i++) {
+        for (let j = 0, jLen = bookInfo.length; j < jLen; j++) {
+          if (orders[i].bookId === bookInfo[j].id) {
+            if (orders[i].bookNum > bookInfo[j].stock) {
+              res.json({
+                errorCode: 2003,
+                errorMsg: bookInfo[j].name + " 库存不足",
+                data: ""
+              });
+              return false;
+            }
+          }
+        }
+      }
       params.orderMoney = orderMoney;
       params.deliveryMoney = orderMoney >= 150 ? 0 : 6;
       params.totalMoney = new Decimal(orderMoney).add(new Decimal(params.deliveryMoney)).toNumber();
@@ -63,8 +154,17 @@ class shopOrderController {
       for (let i = 0, len = orders.length; i < len; i++) {
         orders[i].mainOrderId = orderRes.id;
       }
+      // 生成子订单
       await shopOrderModel.createSubOrder(orders);
-      res.json(resMsg(200));
+      // 库存修改
+      for (let i = 0, iLen = orders.length; i < iLen; i++) {
+        await shopOrderModel.updateStock(orders[i].bookId, orders[i].bookNum);
+      }
+      // 从购物车删除
+      if (type != 1) {
+        await cartListModel.deleteCart(userId, idsArr.join(","));
+      }
+      res.json(resMsg(200, {orderId}));
     } catch (error) {
       logger.error(error);
       res.json(resMsg());

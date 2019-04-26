@@ -50,7 +50,7 @@ class shopUserController {
   }
 
   /**
-   * 管理员注册
+   * 用户注册
    *
    * @static
    * @param {*} req
@@ -114,7 +114,6 @@ class shopUserController {
    * @param {*} res
    * @param {*} res
    * @param {*} next
-   * @memberof adminUserController
    */
   static async updateNickname(req, res, next) {
     try {
@@ -126,7 +125,7 @@ class shopUserController {
       }
       await shopUserModel.update({
         nickname
-      }, req.session.loginUser);
+      }, req.session.loginId);
       res.json(resMsg(200));
     } catch (error) {
       logger.error(error);
@@ -141,7 +140,6 @@ class shopUserController {
    * @param {*} req
    * @param {*} res
    * @param {*} next
-   * @memberof adminUserController
    */
   static async updatePassword(req, res, next) {
     try {
@@ -162,8 +160,9 @@ class shopUserController {
       let result = await shopUserModel.getUserInfo(req.session.loginUser);
       if (result.pwd === decryptPwd) {
         await shopUserModel.update({
-          pwd: decryptNewPwd
-        }, req.session.loginUser);
+          pwd: decryptNewPwd,
+          id: req.session.loginId
+        });
         req.session.destroy();
         res.json(resMsg(200));
       } else {
@@ -182,7 +181,6 @@ class shopUserController {
    * @param {*} req
    * @param {*} res
    * @param {*} next
-   * @memberof adminUserController
    */
   static async updateAvatar(req, res, next) {
     let form = new formidable.IncomingForm();
@@ -219,21 +217,16 @@ class shopUserController {
   }
 
   /**
-   * 获取店铺用户信息
+   * 获取会员用户信息
    *
    * @static
    * @param {*} req
    * @param {*} res
    * @param {*} next
-   * @memberof shopUserController
    */
-  static async getShopUserInfo(req, res, next) {
+  static async getUserInfo(req, res, next) {
     try {
-      if (hasEmpty(req.body.pageSize, req.body.pageNumber)) {
-        res.json(resMsg(9001));
-        return false;
-      }
-      let result = await shopUserModel.getShopUserInfo(req.body);
+      let result = await shopUserModel.getUserInfoClient(req.session.loginId);
       res.json(resMsg(200, result));
     } catch (error) {
       logger.error(error);
@@ -242,23 +235,17 @@ class shopUserController {
   }
 
   /**
-   * 查询用户收货地址
+   * 是否设置支付密码
    *
    * @static
    * @param {*} req
    * @param {*} res
    * @param {*} next
-   * @returns
-   * @memberof shopUserController
    */
-  static async getUserDeliveryAddress(req, res, next) {
+  static async hasPayPwd(req, res, next) {
     try {
-      if (hasEmpty(req.body.userId)) {
-        res.json(resMsg(9001));
-        return false;
-      }
-      let result = await shopUserModel.getUserDeliveryAddress(req.body.userId);
-      res.json(resMsg(200, result));
+      let result = await shopUserModel.getPayPwd(req.session.loginId);
+      res.json(resMsg(200, !!result.payPwd));
     } catch (error) {
       logger.error(error);
       res.json(resMsg());
@@ -266,47 +253,27 @@ class shopUserController {
   }
 
   /**
-   * 根据id获取收货地址信息
+   * 设置支付密码
    *
    * @static
    * @param {*} req
    * @param {*} res
    * @param {*} next
-   * @memberof shopUserController
    */
-  static async getOrderAddressById(req, res, next) {
+  static async setPayPwd(req, res, next) {
     try {
-      if (hasEmpty(req.body.id)) {
+      let payPwd = decodeURI(req.body.payPwd);
+      let decryptPwd = rsaKey.decrypt(payPwd, "utf8");
+      if (hasEmpty(decryptPwd)) {
         res.json(resMsg(9001));
         return false;
       }
-      let result = await shopUserModel.getOrderAddressById(req.body.id);
-      res.json(resMsg(200, result[0]));
-    } catch (error) {
-      logger.error(error);
-      res.json(resMsg());
-    }
-  }
-
-  /**
-   * 更新账号状态
-   *
-   * @static
-   * @param {*} req
-   * @param {*} res
-   * @param {*} next
-   * @memberof shopUserController
-   */
-  static async changeUserStatus(req, res, next) {
-    try {
-      if (hasEmpty(req.body.id, req.body.status) || (req.body.status != 0 && req.body.status != 1)) {
-        res.json(resMsg(9001));
+      let result = await shopUserModel.getPayPwd(req.session.loginId);
+      if (!!result.payPwd) {
+        res.json(resMsg(1006));
         return false;
       }
-      await shopUserModel.update({
-        id: req.body.id,
-        status: req.body.status
-      });
+      await shopUserModel.setPayPwd(req.session.loginId, decryptPwd);
       res.json(resMsg(200));
     } catch (error) {
       logger.error(error);
@@ -315,32 +282,27 @@ class shopUserController {
   }
 
   /**
-   * 重置用户密码 返回随机生成的密码
+   * 校验支付密码
    *
    * @static
    * @param {*} req
    * @param {*} res
    * @param {*} next
-   * @memberof shopUserController
    */
-  static async resetUserPwd(req, res, next) {
+  static async validPayPwd(req, res, next) {
     try {
-      if (hasEmpty(req.body.id)) {
+      let payPwd = decodeURI(req.body.payPwd);
+      let decryptPwd = rsaKey.decrypt(payPwd, "utf8");
+      if (hasEmpty(decryptPwd)) {
         res.json(resMsg(9001));
         return false;
       }
-      let ranPwd = getRandomPwd();
-      let hash = crypto.createHash("md5");
-      hash.update(ranPwd);
-      let hashPwd = hash.digest("hex");
-      await shopUserModel.update({
-        id: req.body.id,
-        pwd: hashPwd
-      });
-      let buffer = new Buffer.from(ranPwd);
-      res.json(resMsg(200, {
-        newPwd: buffer.toString("base64")
-      }));
+      let result = await shopUserModel.getPayPwd(req.session.loginId);
+      if (result.payPwd !== decryptPwd) {
+        res.json(resMsg(1002));
+        return false;
+      }
+      res.json(resMsg(200));
     } catch (error) {
       logger.error(error);
       res.json(resMsg());

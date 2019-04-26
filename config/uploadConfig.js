@@ -4,9 +4,9 @@ const ENCODING = "utf-8";
 const SERVER_DIR = "D:/wampServer/www";
 // 图书下载模板文件名
 const BOOK_NAME = "批量上传图书.xlsx";
-// 图书下载模板位置 
+// 图书下载模板位置
 const BOOK_TEMPLATE = "/template/book";
-// 物流下载模板位置 
+// 物流下载模板位置
 const DELIVERY_TEMPLATE = "/template/delivery";
 // temp临时目录
 const TEMP = "/temp";
@@ -26,6 +26,8 @@ const SERVER_URL = "http://127.0.0.1";
 const BOOK_IMG_URL = "/images/book/";
 // 管理员头像地址
 const ADMIN_AVATAR_URL = "/images/admin/";
+// 管理端服务器地址
+const MANAGEMENT_SERVER = "http://127.0.0.1:3000";
 
 module.exports = {
   ENCODING,
@@ -41,5 +43,6 @@ module.exports = {
   BOOK_IMG_URL,
   TEMP,
   ADMIN_AVATAR_URL,
-  DELIVERY_COMPONY_EXCEL
+  DELIVERY_COMPONY_EXCEL,
+  MANAGEMENT_SERVER
 };

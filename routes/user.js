@@ -15,10 +15,12 @@ router.post("/updatePassword", shopUserController.updatePassword);
 // 更改头像
 router.post("/updateAvatar", shopUserController.updateAvatar);
 // 获取用户信息
-router.post("/getShopUserInfo", shopUserController.getShopUserInfo);
-// 获取用户收货地址
-router.post("/getUserDeliveryAddress", shopUserController.getUserDeliveryAddress);
-// 根据id查询收货地址
-router.post("/getOrderAddressById", shopUserController.getOrderAddressById);
+router.post("/getUserInfo", shopUserController.getUserInfo);
+// 是否设置支付密码
+router.post("/hasPayPwd", shopUserController.hasPayPwd);
+// 设置支付密码
+router.post("/setPayPwd", shopUserController.setPayPwd);
+// 校验支付密码
+router.post("/validPayPwd", shopUserController.validPayPwd);
 
 module.exports = router;

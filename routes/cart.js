@@ -10,5 +10,7 @@ router.post("/addCart", cartListController.addCart);
 router.post("/deleteCart", cartListController.deleteCart);
 // 根据id获取购物车信息
 router.post("/getCartById", cartListController.getCartById);
+// 更新购物车数量
+router.post("/updateCartCount", cartListController.updateCartCount);
 
 module.exports = router;

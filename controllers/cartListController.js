@@ -85,6 +85,7 @@ class cartListController {
       res.json(resMsg());
     }
   }
+
   /**
    * 根据id获取购物车信息
    *
@@ -100,6 +101,29 @@ class cartListController {
         return false;
       }
       let result = await cartListModel.getCartById(req.session.loginId, req.body.ids);
+      res.json(resMsg(200, result));
+    } catch (error) {
+      logger.error(error);
+      res.json(resMsg());
+    }
+  }
+
+  /**
+   * 更新购物车数量
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @param {*} next
+   */
+  static async updateCartCount(req, res, next) {
+    try {
+      let {id, count} = req.body;
+      if (hasEmpty(id, count) || count <= 0 || count > 10) {
+        res.json(resMsg(9001));
+        return false;
+      }
+      let result = await cartListModel.updateCartCount(req.session.loginId, id, count);
       res.json(resMsg(200, result));
     } catch (error) {
       logger.error(error);

@@ -29,27 +29,6 @@ class indexController {
   }
 
   /**
-   * 获取用户信息 排除密码
-   *
-   * @static
-   * @param {*} req
-   * @param {*} res
-   * @param {*} next
-   * @returns
-   * @memberof indexController
-   */
-  static async getUserInfo(req, res, next) {
-    try {
-      let name = req.session.loginUser;
-      let result = await indexModel.getUserInfo(name);
-      res.json(resMsg(200, result));
-    } catch (error) {
-      logger.error(error);
-      res.json(resMsg());
-    }
-  }
-
-  /**
    * 获取省份
    *
    * @static

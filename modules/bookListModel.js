@@ -142,6 +142,22 @@ class bookListModel {
     });
   }
 
+
+  /**
+   * 根据ids获取详情
+   * @param idsArr
+   * @returns {Promise<*>}
+   */
+  static async getBookInfoByIds(idsArr) {
+    return bookListSchema.findAll({
+      attributes: {exclude: ["status", "stockPrice", "createdAt", "updatedAt"]},
+      where: {
+        id: {
+          [Op.in]: idsArr
+        }
+      }
+    });
+  }
   /**
    * 搜索图书
    * @param id
