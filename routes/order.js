@@ -8,5 +8,11 @@ router.post("/createdOrder", shopOrderController.createdOrder);
 router.post("/setOrderPayment", shopOrderController.setOrderPayment);
 // 分页查询订单
 router.post("/getOrderList", shopOrderController.getOrderList);
+// 退款
+router.post("/submitRefundOrder", shopOrderController.submitRefundOrder);
+// 确认收货
+router.post("/submitOrderComplete", shopOrderController.submitOrderComplete);
+// 根据id获取详情
+router.post("/getOrderDetailById", shopOrderController.getOrderDetailById);
 
 module.exports = router;

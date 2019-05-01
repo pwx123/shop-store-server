@@ -58,11 +58,12 @@ class shopOrderModel {
   }
 
   /**
-   * 根据订单号查询订单
-   * @param orderId
+   * 根据订单id查询订单
+   * @param id
+   * @param userId
    * @returns {Promise<*>}
    */
-  static async getOrderByOrderId(orderId) {
+  static async getOrderByOrderId(id, userId) {
     shopOrderListSchema.hasMany(shopSubOrderListSchema, {
       foreignKey: "mainOrderId",
       sourceKey: "id",
@@ -73,7 +74,8 @@ class shopOrderModel {
     });
     return await shopOrderListSchema.findOne({
       where: {
-        orderId
+        id,
+        userId
       },
       include: [{
         model: shopSubOrderListSchema,
@@ -211,6 +213,53 @@ class shopOrderModel {
       where: {
         orderId,
         status: 0
+      }
+    });
+  }
+
+  /**
+   * 订单退款
+   *
+   * @static
+   * @returns
+   * @param params
+   */
+  static async submitRefundOrder(params) {
+    let {id, remark, userId} = params;
+    return await shopOrderListSchema.update({
+      status: 6,
+      remark,
+      updatedAt: new Date()
+    }, {
+      where: {
+        id,
+        userId,
+        status: {
+          [Op.in]: [1, 2, 3, 4, 5]
+        }
+      }
+    });
+  }
+
+  /**
+   * 确认收货
+   *
+   * @static
+   * @returns
+   * @param params
+   */
+  static async submitOrderComplete(params) {
+    let {id, userId} = params;
+    return await shopOrderListSchema.update({
+      status: 5,
+      updatedAt: new Date()
+    }, {
+      where: {
+        id,
+        userId,
+        status: {
+          [Op.in]: [3, 4]
+        }
       }
     });
   }

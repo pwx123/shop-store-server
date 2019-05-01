@@ -35,6 +35,98 @@ class shopOrderController {
   }
 
   /**
+   * 根据id获取详情
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @param {*} next
+   * @memberof shopOrderController
+   */
+  static async getOrderDetailById(req, res, next) {
+    try {
+      if (hasEmpty(req.body.id)) {
+        res.json(resMsg(9001));
+        return false;
+      }
+      let result = await shopOrderModel.getOrderByOrderId(req.body.id, req.session.loginId);
+      res.json(resMsg(200, result));
+    } catch (error) {
+      logger.error(error);
+      res.json(resMsg());
+    }
+  }
+
+  /**
+   * 退款订单
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @param {*} next
+   * @memberof shopOrderController
+   */
+  static async submitRefundOrder(req, res, next) {
+    try {
+      if (hasEmpty(req.body.id, req.body.remark)) {
+        res.json(resMsg(9001));
+        return false;
+      }
+      let result = await shopOrderModel.submitRefundOrder({
+        remark: req.body.remark,
+        id: req.body.id,
+        userId: req.session.loginId
+      });
+      if (result[0] === 1) {
+        // 通知管理平台
+        axios.post(MANAGEMENT_SERVER + "/api/orderNotify", {
+          type: 6
+        }).then(res => {
+          logger.info("退款订单通知成功:" + req.body.id);
+        }).catch(err => {
+          logger.info("退款订单通知失败:" + req.body.id);
+        });
+        res.json(resMsg(200));
+      } else {
+        res.json(resMsg(2004));
+      }
+    } catch (error) {
+      logger.error(error);
+      res.json(resMsg());
+    }
+  }
+
+  /**
+   * 确认收货
+   *
+   * @static
+   * @param {*} req
+   * @param {*} res
+   * @param {*} next
+   * @memberof shopOrderController
+   */
+  static async submitOrderComplete(req, res, next) {
+    try {
+      if (hasEmpty(req.body.id)) {
+        res.json(resMsg(9001));
+        return false;
+      }
+      let result = await shopOrderModel.submitOrderComplete({
+        id: req.body.id,
+        userId: req.session.loginId
+      });
+      if (result[0] === 1) {
+        res.json(resMsg(200));
+      } else {
+        res.json(resMsg(2004));
+      }
+    } catch (error) {
+      logger.error(error);
+      res.json(resMsg());
+    }
+  }
+
+  /**
    * 订单付款完成
    *
    * @static
@@ -56,11 +148,10 @@ class shopOrderController {
         axios.post(MANAGEMENT_SERVER + "/api/orderNotify", {
           type: 1
         }).then(res => {
-          logger.info('订单通知成功:' + orderId);
+          logger.info("订单通知成功:" + orderId);
         }).catch(err => {
-          logger.info('订单通知失败:' + orderId);
+          logger.info("订单通知失败:" + orderId);
         });
-        ;
         res.json(resMsg(200));
       } else {
         res.json(resMsg(2004));
