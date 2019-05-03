@@ -208,7 +208,7 @@ class shopOrderModel {
   static async updateOrderPayment(orderId) {
     return await shopOrderListSchema.update({
       status: 1,
-      updatedAt: new Date()
+      dealAt: new Date()
     }, {
       where: {
         orderId,
