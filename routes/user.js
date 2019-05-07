@@ -12,6 +12,8 @@ router.post("/logout", shopUserController.logout);
 router.post("/updateNickname", shopUserController.updateNickname);
 // 更改密码
 router.post("/updatePassword", shopUserController.updatePassword);
+// 更改性别
+router.post("/updateSex", shopUserController.updateSex);
 // 更改头像
 router.post("/updateAvatar", shopUserController.updateAvatar);
 // 获取用户信息

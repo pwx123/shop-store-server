@@ -85,59 +85,6 @@ class shopOrderModel {
     });
   }
 
-  /**
-   * 生成退款订单记录
-   * @param refundArr 退款订单数据
-   * @returns {Promise<*>}
-   */
-  static async createRefundRecord(refundArr) {
-    return await shopRefundRecordSchema.bulkCreate(refundArr);
-  }
-
-  /**
-   * 分页获取退款订单记录
-   * @param params
-   * @returns {Promise<{total: *, pageNumber: *, pageSize: *, rows: *}>}
-   */
-  static async getRefundRecord(params) {
-    let {
-      pageSize,
-      pageNumber,
-      startTime,
-      endTime,
-      refundOrderId,
-      orderNumId,
-      userName,
-      status
-    } = params;
-    let queryObj = getUncertainSqlObj({
-      refundOrderId,
-      orderNumId,
-      userName,
-      status
-    });
-    let result = await shopRefundRecordSchema.findAndCountAll({
-      offset: pageSize * (pageNumber - 1),
-      limit: pageSize,
-      where: {
-        createdAt: {
-          [Op.gt]: startTime,
-          [Op.lt]: endTime,
-        },
-        ...queryObj
-      },
-      order: [
-        ["id", "DESC"]
-      ]
-    });
-    return {
-      pageSize,
-      pageNumber,
-      rows: result.rows,
-      total: result.count
-    };
-  }
-
 
   /**
    * 获取子订单信息

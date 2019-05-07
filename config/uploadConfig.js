@@ -26,6 +26,8 @@ const SERVER_URL = "http://127.0.0.1";
 const BOOK_IMG_URL = "/images/book/";
 // 管理员头像地址
 const ADMIN_AVATAR_URL = "/images/admin/";
+// 用户头像地址
+const USER_AVATAR_URL = "/images/user/";
 // 管理端服务器地址
 const MANAGEMENT_SERVER = "http://127.0.0.1:3000";
 
@@ -43,6 +45,7 @@ module.exports = {
   BOOK_IMG_URL,
   TEMP,
   ADMIN_AVATAR_URL,
+  USER_AVATAR_URL,
   DELIVERY_COMPONY_EXCEL,
   MANAGEMENT_SERVER
 };

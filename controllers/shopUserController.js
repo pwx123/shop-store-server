@@ -1,14 +1,13 @@
 const logger = require("../utils/log4j");
 const resMsg = require("../utils/utils").resMsg;
 const hasEmpty = require("../utils/utils").hasEmpty;
-const getRandomPwd = require("../utils/utils").getRandomPwd;
 const shopUserModel = require("../modules/shopUserModel");
-const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const rsaKey = require("../utils/rsa");
 const mobileReg = require("../utils/utils").mobileReg;
 const uploadConfig = require("./../config/uploadConfig");
+const formidable = require("formidable");
 
 class shopUserController {
 
@@ -33,6 +32,10 @@ class shopUserController {
         let result = await shopUserModel.getUserInfo(name);
         if (result === null) {
           res.json(resMsg(1001));
+          return false;
+        }
+        if (result.status === 1) {
+          res.json(resMsg(1007));
           return false;
         }
         if (decryptPwd === result.pwd) {
@@ -99,11 +102,40 @@ class shopUserController {
    * @param {*} req
    * @param {*} res
    * @param {*} next
-   * @memberof adminUserController
    */
   static async logout(req, res, next) {
     req.session.destroy();
     res.json(resMsg(200));
+  }
+
+
+  /**
+   * 更新性别
+   *
+   * @static
+   * @param req
+   * @param {*} res
+   * @param {*} res
+   * @param {*} next
+   */
+  static async updateSex(req, res, next) {
+    try {
+      let {
+        sex
+      } = req.body;
+      if (hasEmpty(sex) || (parseInt(sex) !== 0 && parseInt(sex) !== 1)) {
+        res.json(resMsg(9001));
+        return false;
+      }
+      await shopUserModel.update({
+        sex,
+        id: req.session.loginId
+      });
+      res.json(resMsg(200));
+    } catch (error) {
+      logger.error(error);
+      res.json(resMsg());
+    }
   }
 
   /**
@@ -117,15 +149,15 @@ class shopUserController {
    */
   static async updateNickname(req, res, next) {
     try {
-      let {
-        nickname
-      } = req.body;
+      let {nickname} = req.body;
       if (hasEmpty(nickname) || nickname.length > 20) {
-        nickname = "";
+        res.json(resMsg(9001));
+        return false;
       }
       await shopUserModel.update({
-        nickname
-      }, req.session.loginId);
+        nickname,
+        id: req.session.loginId
+      });
       res.json(resMsg(200));
     } catch (error) {
       logger.error(error);
@@ -185,7 +217,7 @@ class shopUserController {
   static async updateAvatar(req, res, next) {
     let form = new formidable.IncomingForm();
     form.encoding = uploadConfig.ENCODING;
-    form.uploadDir = uploadConfig.SERVER_DIR + uploadConfig.ADMIN_AVATAR_URL;
+    form.uploadDir = uploadConfig.SERVER_DIR + uploadConfig.USER_AVATAR_URL;
     form.keepExtensions = uploadConfig.KEEP_EXTENSIONS;
     form.maxFileSize = uploadConfig.MAX_FILESIZE;
     form.parse(req, async (error, fields, files) => {
@@ -197,16 +229,17 @@ class shopUserController {
       let avatarUrl = "";
       if (files.avatar) {
         let extname = path.extname(files.avatar.name);
-        let newPath = uploadConfig.SERVER_DIR + uploadConfig.ADMIN_AVATAR_URL + req.session.loginUser + extname.toLocaleLowerCase();
+        let newPath = uploadConfig.SERVER_DIR + uploadConfig.USER_AVATAR_URL + req.session.loginUser + extname.toLocaleLowerCase();
         fs.renameSync(files.avatar.path, newPath);
-        avatarUrl = uploadConfig.SERVER_URL + uploadConfig.ADMIN_AVATAR_URL + req.session.loginUser + extname.toLocaleLowerCase();
+        avatarUrl = uploadConfig.SERVER_URL + uploadConfig.USER_AVATAR_URL + req.session.loginUser + extname.toLocaleLowerCase();
       } else {
         res.json(resMsg(9001));
         return false;
       }
       await shopUserModel.update({
-        avatarUrl
-      }, req.session.loginUser);
+        avatarUrl,
+        id: req.session.loginId
+      });
       res.json(resMsg(200));
     });
     form.on("error", function (error) {

@@ -60,7 +60,7 @@ class shopUserModel {
    * 更新
    *
    * @static
-   * @param {obj} id 用户id
+   * @param {obj} 信息
    * @returns
    */
   static async update(parmas) {

@@ -1,8 +1,6 @@
 const logger = require("../utils/log4j");
 const resMsg = require("../utils/utils").resMsg;
-const hasEmpty = require("../utils/utils").hasEmpty;
 const shopModel = require("../modules/shopModel");
-const adminUserModel = require("../modules/adminUserModel");
 
 class shopController {
   /**
