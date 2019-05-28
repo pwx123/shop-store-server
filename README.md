@@ -2,6 +2,14 @@
 
 基于 `Express`, `Mysql` 的网上书店后台系统。
 
+
+## 项目其他部分
+网上书店-前端 [链接](https://github.com/pwx123/shop-store-client)
+
+网上书店管理系统-前端 [链接](https://github.com/pwx123/shop-store-management-client)
+
+网上书店管理系统-后端 [链接](https://github.com/pwx123/shop-store-management-server)
+
 ## 实现功能
 
 - 用户登录/注册
@@ -12,12 +20,9 @@
 - 用户信息修改
 - 与管理平台的订单通知
 
-## 项目其他部分
-网上书店-前端 [链接](https://github.com/pwx123/shop-store-client)
+## 项目预览
 
-网上书店管理系统-前端 [链接](https://github.com/pwx123/shop-store-management-client)
-
-网上书店管理系统-后端 [链接](https://github.com/pwx123/shop-store-management-server)
+访问地址 [链接](http://182.254.192.62:8081/)
 
 ## 项目配置
 
