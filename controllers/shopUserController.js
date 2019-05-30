@@ -1,10 +1,10 @@
 const logger = require("../utils/log4j");
+const nodeRSA = require("node-rsa");
 const resMsg = require("../utils/utils").resMsg;
 const hasEmpty = require("../utils/utils").hasEmpty;
 const shopUserModel = require("../modules/shopUserModel");
 const fs = require("fs");
 const path = require("path");
-const rsaKey = require("../utils/rsa");
 const mobileReg = require("../utils/utils").mobileReg;
 const uploadConfig = require("./../config/uploadConfig");
 const formidable = require("formidable");
@@ -24,7 +24,11 @@ class shopUserController {
     try {
       let name = req.body.name;
       let pwd = decodeURI(req.body.pwd);
-      let decryptPwd = rsaKey.decrypt(pwd, "utf8");
+      const key = new nodeRSA({b: 512});
+      key.setOptions({encryptionScheme: "pkcs1"});
+      let privateKey = req.session.privateKey;
+      key.importKey(privateKey, "pkcs1");
+      let decryptPwd = key.decrypt(pwd, "utf8");
       if (hasEmpty(name, decryptPwd)) {
         res.json(resMsg(9001));
         return false;
@@ -67,8 +71,12 @@ class shopUserController {
       let nickname = name;
       let pwd = decodeURI(req.body.pwd);
       let repPwd = decodeURI(req.body.repPwd);
-      let decryptPwd = rsaKey.decrypt(pwd, "utf8");
-      let decryptRepPwd = rsaKey.decrypt(repPwd, "utf8");
+      const key = new nodeRSA({b: 512});
+      key.setOptions({encryptionScheme: "pkcs1"});
+      let privateKey = req.session.privateKey;
+      key.importKey(privateKey, "pkcs1");
+      let decryptPwd = key.decrypt(pwd, "utf8");
+      let decryptRepPwd = key.decrypt(repPwd, "utf8");
       if (hasEmpty(name, decryptPwd, decryptRepPwd) || !mobileReg.test(name)) {
         res.json(resMsg(9001));
         return false;
@@ -178,9 +186,13 @@ class shopUserController {
       let pwd = decodeURI(req.body.pwd);
       let newPwd = decodeURI(req.body.newPwd);
       let repNewPwd = decodeURI(req.body.repNewPwd);
-      let decryptPwd = rsaKey.decrypt(pwd, "utf8");
-      let decryptNewPwd = rsaKey.decrypt(newPwd, "utf8");
-      let decryptRepNewPwd = rsaKey.decrypt(repNewPwd, "utf8");
+      const key = new nodeRSA({b: 512});
+      key.setOptions({encryptionScheme: "pkcs1"});
+      let privateKey = req.session.privateKey;
+      key.importKey(privateKey, "pkcs1");
+      let decryptPwd = key.decrypt(pwd, "utf8");
+      let decryptNewPwd = key.decrypt(newPwd, "utf8");
+      let decryptRepNewPwd = key.decrypt(repNewPwd, "utf8");
       if (hasEmpty(decryptPwd, decryptNewPwd, decryptRepNewPwd)) {
         res.json(resMsg(9001));
         return false;
@@ -296,7 +308,11 @@ class shopUserController {
   static async setPayPwd(req, res, next) {
     try {
       let payPwd = decodeURI(req.body.payPwd);
-      let decryptPwd = rsaKey.decrypt(payPwd, "utf8");
+      const key = new nodeRSA({b: 512});
+      key.setOptions({encryptionScheme: "pkcs1"});
+      let privateKey = req.session.privateKey;
+      key.importKey(privateKey, "pkcs1");
+      let decryptPwd = key.decrypt(payPwd, "utf8");
       if (hasEmpty(decryptPwd)) {
         res.json(resMsg(9001));
         return false;
@@ -325,7 +341,11 @@ class shopUserController {
   static async validPayPwd(req, res, next) {
     try {
       let payPwd = decodeURI(req.body.payPwd);
-      let decryptPwd = rsaKey.decrypt(payPwd, "utf8");
+      const key = new nodeRSA({b: 512});
+      key.setOptions({encryptionScheme: "pkcs1"});
+      let privateKey = req.session.privateKey;
+      key.importKey(privateKey, "pkcs1");
+      let decryptPwd = key.decrypt(payPwd, "utf8");
       if (hasEmpty(decryptPwd)) {
         res.json(resMsg(9001));
         return false;
