@@ -1,5 +1,5 @@
 const logger = require("../utils/log4j");
-const rsaKey = require("../utils/rsa");
+const nodeRSA = require("node-rsa");
 const resMsg = require("../utils/utils").resMsg;
 const hasEmpty = require("../utils/utils").hasEmpty;
 const getRandom = require("../utils/utils").getRandom;
@@ -18,7 +18,10 @@ class indexController {
    */
   static async getPublicKey(req, res, next) {
     try {
-      let publicKey = rsaKey.exportKey("public");
+      const key = new nodeRSA({b: 512});
+      key.setOptions({encryptionScheme: "pkcs1"});
+      let publicKey = key.exportKey("public");
+      req.session.privateKey = key.exportKey("private");
       res.json(resMsg(200, publicKey));
     } catch (error) {
       logger.error(error);
