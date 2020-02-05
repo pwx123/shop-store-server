@@ -32,7 +32,7 @@ app.use(express.urlencoded({
 }));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(cors({credentials: true, origin: "http://127.0.0.1:8081"}));
+app.use(cors({credentials: true, origin: ["http://127.0.0.1:8081", "http://localhost:8081"]}));
 app.use(sessionMiddleware);
 
 app.use(async function (req, res, next) {
